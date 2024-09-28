@@ -1,51 +1,56 @@
 import pandas as pd
 import numpy as np
 
-nba_df = pd.read_csv("./data/NBA_Regular_Season_Stats_2021-2024.csv")
+def preprocessed_data(df):
+    required_columns = ['player', 'season', 'pts', 'ast', 'trb', 'stl', 'blk', 'fg%', '3p%', 'ft%', 'mp', 'pos', 'tm']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        raise ValueError(f"Missing columns: {', '.join(missing_columns)}")
+    
+    df = df.copy()  # Create a copy to avoid SettingWithCopyWarning
+    
+    # Encode categorical variables
+    for col in ['player', 'pos', 'tm']:
+        df[col] = pd.factorize(df[col])[0]
+    
+    df['season'] = df['season'].str.slice(0, 4).astype(int)  # Assuming season format is "2023-24"
+    df.sort_values(by=['player', 'season'], inplace=True)
 
-#Year-over-Year Improvement
-nba_df['season'] = nba_df['season'].str.slice(5, 9).astype(int)
-nba_df.sort_values(by=['player', 'season'], inplace=True)
-nba_df['pts_improvement'] = nba_df.groupby('player')['pts'].pct_change()
-nba_df['ast_improvement'] = nba_df.groupby('player')['ast'].pct_change()
-nba_df['trb_improvement'] = nba_df.groupby('player')['trb'].pct_change()
-nba_df['stl_improvement'] = nba_df.groupby('player')['stl'].pct_change()
-nba_df['blk_improvement'] = nba_df.groupby('player')['blk'].pct_change()
-nba_df['fg%_improvement'] = nba_df.groupby('player')['fg%'].pct_change()
-nba_df['3p%_improvement'] = nba_df.groupby('player')['3p%'].pct_change()
-nba_df['ft%_improvement'] = nba_df.groupby('player')['ft%'].pct_change()
+    # Year-over-Year Improvement
+    improvement_columns = ['pts', 'ast', 'trb', 'stl', 'blk', 'fg%', '3p%', 'ft%']
+    for col in improvement_columns:
+        df[f'{col}_improvement'] = df.groupby('player')[col].pct_change()
 
-# Weighted Performance Averages
-nba_df['weighted_pts'] = nba_df['pts'] * (nba_df['season'] == 2024) * 0.6 + \
-                         nba_df['pts'] * (nba_df['season'] == 2023) * 0.3 + \
-                         nba_df['pts'] * (nba_df['season'] == 2022) * 0.1
+    # Weighted Performance Averages
+    for stat in ['pts', 'ast', 'trb']:
+        df[f'weighted_{stat}'] = (
+            df[stat] * (df['season'] == df['season'].max()) * 0.6 +
+            df[stat] * (df['season'] == df['season'].max() - 1) * 0.3 +
+            df[stat] * (df['season'] == df['season'].max() - 2) * 0.1
+        )
 
-nba_df['weighted_ast'] = nba_df['ast'] * (nba_df['season'] == 2024) * 0.6 + \
-                         nba_df['ast'] * (nba_df['season'] == 2023) * 0.3 + \
-                         nba_df['ast'] * (nba_df['season'] == 2022) * 0.1
+    # Positional Rankings
+    ranking_columns = ['pts', 'ast', 'trb', 'stl', 'blk', 'fg%', '3p%', 'ft%']
+    for col in ranking_columns:
+        df[f'{col}_positional_rank'] = df.groupby(['pos', 'season'])[col].rank(method='max', ascending=False)
 
-nba_df['weighted_trb'] = nba_df['trb'] * (nba_df['season'] == 2024) * 0.6 + \
-                         nba_df['trb'] * (nba_df['season'] == 2023) * 0.3 + \
-                         nba_df['trb'] * (nba_df['season'] == 2022) * 0.1
+    # Efficiency Metrics
+    df['efficiency'] = (df['pts'] + df['ast'] + df['trb'] + df['stl'] + df['blk']) / df['mp']
+    df['efficiency_rank'] = df.groupby('season')['efficiency'].rank(method='max', ascending=False)
 
-#Positional Rankings
-nba_df['pts_positional_rank'] = nba_df.groupby(['pos', 'season'])['pts'].rank(method='max', ascending=False)
-nba_df['ast_positional_rank'] = nba_df.groupby(['pos', 'season'])['ast'].rank(method='max', ascending=False)
-nba_df['trb_positional_rank'] = nba_df.groupby(['pos', 'season'])['trb'].rank(method='max', ascending=False)
-nba_df['stl_positional_rank'] = nba_df.groupby(['pos', 'season'])['stl'].rank(method='max', ascending=False)
-nba_df['blk_positional_rank'] = nba_df.groupby(['pos', 'season'])['blk'].rank(method='max', ascending=False)
-nba_df['fg%_positional_rank'] = nba_df.groupby(['pos', 'season'])['fg%'].rank(method='max', ascending=False)
-nba_df['3p%_positional_rank'] = nba_df.groupby(['pos', 'season'])['3p%'].rank(method='max', ascending=False)
-nba_df['ft%_positional_rank'] = nba_df.groupby(['pos', 'season'])['ft%'].rank(method='max', ascending=False)
+    # Consistency Score
+    df['consistency_score'] = df.groupby('player')['pts'].transform('std')
+    df['consistency_rank'] = df.groupby('season')['consistency_score'].rank(method='max', ascending=True)
 
-# Efficiency Metrics
-nba_df['efficiency'] = (nba_df['pts'] + nba_df['ast'] + nba_df['trb'] + nba_df['stl'] + nba_df['blk']) / nba_df['mp']
-nba_df['efficiency_rank'] = nba_df.groupby('season')['efficiency'].rank(method='max', ascending=False)
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df = df.fillna(0)  # Fill NaN values with 0
+    
+    # Separate the target (points) from the features
+    y = df[['pts', 'ast', 'trb', 'stl', 'blk']]
+    X = df.drop(columns=['pts', 'ast', 'trb', 'stl', 'blk'])
+    
+    return X, y
 
-#Consistency Score
-nba_df['consistency_score'] = nba_df.groupby('player')['pts'].transform('std')
-nba_df['consistency_rank'] = nba_df.groupby('season')['consistency_score'].rank(method='max', ascending=False)
-
-nba_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-
-nba_df.to_csv('./data/NBA_Feature_Engineered_Data.csv', index=False)
+# The following lines should be in a separate script, not in this function file
+# nba_df = pd.read_csv("./data/NBA_Regular_Season_Stats_2021-2024.csv")
+# X, y = preprocessed_data(nba_df)
