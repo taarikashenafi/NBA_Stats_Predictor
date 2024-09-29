@@ -12,7 +12,6 @@ def stat_predictions():
     # Load dataset
     data = pd.read_csv('./data/preprocessed_data.csv')  # Load your dataset from a CSV file
 
-
     # Get unique players from the dataframe
     players = data['player'].unique()
 
