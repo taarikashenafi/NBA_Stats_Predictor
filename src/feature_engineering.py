@@ -13,7 +13,7 @@ def preprocessed_data(df):
     for col in ['player', 'pos', 'tm']:
         df[col] = pd.factorize(df[col])[0]
     
-    df['season'] = df['season'].str.slice(0, 4).astype(int)  # Assuming season format is "2023-24"
+      # Assuming season format is "2023-24"
     df.sort_values(by=['player', 'season'], inplace=True)
 
     # Year-over-Year Improvement
@@ -45,12 +45,12 @@ def preprocessed_data(df):
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(0)  # Fill NaN values with 0
     
+    
     # Separate the target (points) from the features
     y = df[['pts', 'ast', 'trb', 'stl', 'blk']]
     X = df.drop(columns=['pts', 'ast', 'trb', 'stl', 'blk'])
-    
+
+
     return X, y
 
-# The following lines should be in a separate script, not in this function file
-# nba_df = pd.read_csv("./data/NBA_Regular_Season_Stats_2021-2024.csv")
-# X, y = preprocessed_data(nba_df)
+

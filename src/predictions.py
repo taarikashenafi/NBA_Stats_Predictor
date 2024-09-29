@@ -1,6 +1,6 @@
 import joblib
 import pandas as pd
-from feature_engineering import preprocessed_data
+from src.feature_engineering import preprocessed_data
 
 def load_model(model_path):
     """
@@ -78,41 +78,3 @@ def predict_for_streamlit(model_path, input_data):
         
     return result
 
-# Example usage:
-if __name__ == "__main__":
-    model_path = "models/xgboost_model.pkl"
-    input_data = {
-        "player": "Luka Doncic",
-        "pos": "PG",
-        "age": 24,
-        "tm": "DAL",
-        "g": 70,
-        "gs": 70,
-        "mp": 37.5,
-        "fg": 11.5,
-        "fga": 23.6,
-        "fg%": 0.487,
-        "3p": 4.1,
-        "3pa": 10.6,
-        "3p%": 0.382,
-        "2p": 7.4,
-        "2pa": 13.0,
-        "2p%": 0.573,
-        "efg%": 0.573,
-        "ft": 6.8,
-        "fta": 8.7,
-        "ft%": 0.786,
-        "orb": 0.8,
-        "drb": 8.4,
-        "trb": 9.2,
-        "ast": 9.8,
-        "stl": 1.4,
-        "blk": 0.5,
-        "tov": 4.0,
-        "pf": 2.1,
-        "pts": 33.9,
-        "season": "2023-2024 Regular",
-        "player_id": 525
-    }
-    result = predict_for_streamlit(model_path, input_data)
-    print(result)
