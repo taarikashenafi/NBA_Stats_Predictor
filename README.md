@@ -2,6 +2,9 @@
 
 This project utilizes machine learning to predict NBA player statistics for upcoming seasons. Built with a focus on real-world data processing and prediction accuracy, the app allows users to explore and visualize the performance predictions of NBA players. This project aims to demonstrate proficiency in data science, machine learning model development, and full-stack application deployment using modern technologies.
 
+## Link
+[Demo](https://nbastatspredictor.streamlit.app)
+
 ## Features
 
 - **Player Stats Prediction:** Predicts key NBA player statistics such as points, assists, rebounds, and more for the upcoming season.
