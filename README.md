@@ -85,7 +85,7 @@ Navigate to the provided localhost link in your browser to interact with the das
 ## Upcoming Features
 
 -	NBA Awards Predictions: Predictions for NBA awards like MVP, Defensive Player of the Year, and Rookie of the Year (under development).
-- NBA Team Predictions: Predictions for team regualar season records and playoff brackets
+- NBA Team Predictions: Predictions for team regular season records and playoff brackets
 
 ## Contributions
 
